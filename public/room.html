@@ -3,20 +3,25 @@
 <head>
   <meta charset="UTF-8" />
   <title>LinkDrop • Room</title>
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="/style.css" />
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 </head>
-<body>
-  <div class="status-bar" id="status">Waiting...</div>
+<body class="room">
+  <div class="status-bar">
+    <span class="room-code">ROOM: <strong id="roomCode">LOADING</strong></span>
+    <span class="status-text" id="statusText">Awaiting connection...</span>
+  </div>
 
   <div class="video-grid">
-    <div class="video-box">
-      <p>YOU</p>
+    <div class="video-box" id="youBox">
+      <span class="label">YOU</span>
       <video id="localVideo" autoplay muted></video>
+      <button class="expand-btn" onclick="expandVideo('youBox')">↗️</button>
     </div>
-    <div class="video-box">
-      <p>THEM</p>
+    <div class="video-box" id="themBox">
+      <span class="label">THEM</span>
       <video id="remoteVideo" autoplay></video>
+      <button class="expand-btn" onclick="expandVideo('themBox')">↗️</button>
     </div>
   </div>
 
@@ -28,13 +33,12 @@
 
   <div class="controls" id="controls">
     <button onclick="toggleAudio()" title="Mute Audio">🔇</button>
-    <button onclick="toggleVideo()" title="Stop Camera">🛑</button>
-    <button onclick="fullscreen()" title="Fullscreen">↗️</button>
+    <button onclick="toggleVideo()" title="Stop Camera">🎥</button>
     <button onclick="copyLink()" title="Copy Link">📋</button>
     <button onclick="newRoom()" title="New Room">🔁</button>
   </div>
 
   <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
-  <script src="script.js"></script>
+  <script src="/script.js"></script>
 </body>
 </html>

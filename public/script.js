@@ -36,7 +36,6 @@ async function initRoom() {
     // Wait for connection before doing anything
     socket.on("connect", () => {
       console.log("✅ Socket connected:", socket.id);
-      // Now join room with valid socket.id
       socket.emit("join-room", roomCode, socket.id);
     });
 
@@ -61,7 +60,9 @@ async function initRoom() {
       console.log("✅ Connection accepted. Starting WebRTC...");
       status.textContent = "🟢 Connected (P2P)";
       approvalPopup.style.display = "none";
-      createPeerConnection();
+      if (isHost) {
+        createPeerConnection();
+      }
     });
 
     socket.on("rejected", () => {
@@ -70,37 +71,68 @@ async function initRoom() {
       window.location.href = "/";
     });
 
+    // WebRTC Signaling Listeners
+    socket.on("offer", async (desc) => {
+      console.log("📥 Received offer from host");
+      peerConnection = new RTCPeerConnection(config);
+      localStream.getTracks().forEach(t => peerConnection.addTrack(t, localStream));
+
+      peerConnection.ontrack = (e) => {
+        if (remoteVideo.srcObject !== e.streams[0]) {
+          console.log("📹 Remote stream received");
+          remoteVideo.srcObject = e.streams[0];
+        }
+      };
+
+      peerConnection.onicecandidate = (e) => {
+        if (e.candidate) {
+          socket.emit("ice-candidate", roomCode, e.candidate);
+        }
+      };
+
+      await peerConnection.setRemoteDescription(new RTCSessionDescription(desc));
+      const answer = await peerConnection.createAnswer();
+      await peerConnection.setLocalDescription(answer);
+      socket.emit("answer", roomCode, answer);
+    });
+
+    socket.on("answer", (desc) => {
+      console.log("📥 Received answer from guest");
+      peerConnection.setRemoteDescription(new RTCSessionDescription(desc));
+    });
+
+    socket.on("ice-candidate", (candidate) => {
+      console.log("🌐 ICE candidate received");
+      peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
+    });
+
   } catch (err) {
     console.error("❌ initRoom error:", err);
     status.textContent = "Error: " + err.message;
   }
 }
 
-// Create WebRTC Peer Connection
+// Create WebRTC Peer Connection (Host only)
 function createPeerConnection() {
   peerConnection = new RTCPeerConnection(config);
 
-  // Send local tracks
   localStream.getTracks().forEach(track => {
     peerConnection.addTrack(track, localStream);
   });
 
-  // Handle remote stream
-  peerConnection.ontrack = (event) => {
-    if (remoteVideo.srcObject !== event.streams[0]) {
+  peerConnection.ontrack = (e) => {
+    if (remoteVideo.srcObject !== e.streams[0]) {
       console.log("📹 Remote stream received");
-      remoteVideo.srcObject = event.streams[0];
+      remoteVideo.srcObject = e.streams[0];
     }
   };
 
-  // Send ICE candidates
-  peerConnection.onicecandidate = (event) => {
-    if (event.candidate) {
-      socket.emit("ice-candidate", roomCode, event.candidate);
+  peerConnection.onicecandidate = (e) => {
+    if (e.candidate) {
+      socket.emit("ice-candidate", roomCode, e.candidate);
     }
   };
 
-  // Create offer
   peerConnection.createOffer()
     .then(offer => {
       console.log("📤 Creating offer...");
@@ -111,8 +143,6 @@ function createPeerConnection() {
     })
     .catch(err => console.error("❌ Offer failed:", err));
 }
-
-// Signaling Handlers (handled via socket.on in initRoom)
 
 // UI Controls
 function toggleAudio() {

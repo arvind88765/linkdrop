@@ -12,7 +12,7 @@
     <span class="status-text" id="statusText">Awaiting connection...</span>
   </div>
 
-  <div class="video-grid">
+  <div class="video-container">
     <div class="video-box" id="youBox">
       <span class="label">YOU</span>
       <video id="localVideo" autoplay muted></video>
@@ -23,14 +23,12 @@
     </div>
   </div>
 
-  <!-- Approval Popup -->
   <div class="popup" id="approvalPopup" style="display: none;">
     <p>🔔 Incoming Request</p>
     <button id="acceptBtn">ACCEPT</button>
     <button id="rejectBtn">REJECT</button>
   </div>
 
-  <!-- Controls: Hidden until hover -->
   <div class="controls" id="controls">
     <button onclick="toggleAudio()" title="Mute Audio">🔇</button>
     <button onclick="toggleVideo()" title="Stop Camera">🎥</button>

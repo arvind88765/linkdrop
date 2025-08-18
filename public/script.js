@@ -1,24 +1,18 @@
-// DOM Elements
 const statusText = document.getElementById("statusText");
 const localVideo = document.getElementById("localVideo");
 const remoteVideo = document.getElementById("remoteVideo");
 const approvalPopup = document.getElementById("approvalPopup");
 const acceptBtn = document.getElementById("acceptBtn");
 const rejectBtn = document.getElementById("rejectBtn");
-const youBox = document.getElementById("youBox");
-const themBox = document.getElementById("themBox");
 
-// State
 let roomCode = null;
 let isHost = false;
 let socket = null;
 let localStream = null;
 let peerConnection = null;
 
-// WebRTC config
 const config = { iceServers: [{ urls: "stun:stun.l.google.com:19302" }] };
 
-// On Load
 window.addEventListener("load", () => {
   const path = window.location.pathname;
   if (path.startsWith("/room/")) {
@@ -29,18 +23,15 @@ window.addEventListener("load", () => {
   }
 });
 
-// Initialize Room
 async function initRoom() {
   try {
     socket = io("https://linkdrop-production.up.railway.app");
 
     socket.on("connect", () => {
-      console.log("✅ Socket connected:", socket.id);
       socket.emit("join-room", roomCode, socket.id);
     });
 
     socket.on("connect_error", (err) => {
-      console.error("❌ Socket error:", err);
       statusText.textContent = "Connection failed";
     });
 
@@ -56,9 +47,7 @@ async function initRoom() {
     socket.on("accepted", () => {
       statusText.textContent = "🟢 Connected (P2P)";
       approvalPopup.style.display = "none";
-      youBox.classList.add("connected");
-      themBox.classList.add("connected");
-      if (isHost) createPeerConnection();
+      createPeerConnection();
     });
 
     socket.on("rejected", () => {
@@ -86,12 +75,10 @@ async function initRoom() {
     });
 
   } catch (err) {
-    console.error("Init error:", err);
     statusText.textContent = "Error: " + err.message;
   }
 }
 
-// Create WebRTC Connection
 function createPeerConnection() {
   peerConnection = new RTCPeerConnection(config);
   localStream.getTracks().forEach(t => peerConnection.addTrack(t, localStream));
@@ -102,43 +89,22 @@ function createPeerConnection() {
     .then(() => socket.emit("offer", roomCode, peerConnection.localDescription));
 }
 
-// UI Controls
 function toggleAudio() {
   const track = localStream.getAudioTracks()[0];
-  if (track) {
-    track.enabled = !track.enabled;
-    document.querySelector('.controls [title="Mute Audio"]').style.color = track.enabled ? "#fff" : "#f00";
-  }
+  if (track) track.enabled = !track.enabled;
 }
 
 function toggleVideo() {
   const track = localStream.getVideoTracks()[0];
-  if (track) {
-    track.enabled = !track.enabled;
-  }
+  if (track) track.enabled = !track.enabled;
 }
 
-function expandVideo(boxId) {
-  const isYou = boxId === 'youBox';
-  const isThem = boxId === 'themBox';
-
-  if (document.body.classList.contains('fullscreen-you') && isYou) {
-    document.body.classList.remove('fullscreen-you');
-  } else if (document.body.classList.contains('fullscreen-them') && isThem) {
-    document.body.classList.remove('fullscreen-them');
-  } else if (isYou) {
-    document.body.classList.add('fullscreen-you');
-    document.body.classList.remove('fullscreen-them');
-  } else if (isThem) {
-    document.body.classList.add('fullscreen-them');
-    document.body.classList.remove('fullscreen-you');
-  }
+function fullscreen() {
+  document.body.requestFullscreen();
 }
 
 function copyLink() {
-  navigator.clipboard.writeText(window.location.href)
-    .then(() => alert("Link copied!"))
-    .catch(err => console.error("Copy failed:", err));
+  navigator.clipboard.writeText(window.location.href).then(() => alert("Link copied!"));
 }
 
 function newRoom() {
@@ -146,7 +112,6 @@ function newRoom() {
   window.location.href = `/room/${code}`;
 }
 
-// Approval
 acceptBtn.onclick = () => {
   socket.emit("accept", roomCode);
   approvalPopup.style.display = "none";

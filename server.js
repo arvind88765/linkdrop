@@ -1,115 +1,162 @@
-// Dependencies
-const express = require('express');
-const http = require('http');
-const socketIo = require('socket.io');
+// DOM Elements
+const status = document.getElementById("status");
+const localVideo = document.getElementById("localVideo");
+const remoteVideo = document.getElementById("remoteVideo");
+const approvalPopup = document.getElementById("approvalPopup");
+const acceptBtn = document.getElementById("acceptBtn");
+const rejectBtn = document.getElementById("rejectBtn");
 
-console.log("✅ Dependencies loaded");
+// State
+let roomCode = null;
+let isHost = false;
+let socket = null;
+let localStream = null;
+let peerConnection = null;
 
-// Initialize app
-const app = express();
-const server = http.createServer(app);
+// WebRTC config
+const config = { iceServers: [{ urls: "stun:stun.l.google.com:19302" }] };
 
-// Socket.IO with CORS for your domain
-const io = socketIo(server, {
-  cors: {
-    origin: "https://linkdrop-phi.vercel.app",
-    methods: ["GET", "POST"],
-    credentials: true
-  },
-  pingTimeout: 60000,
-  pingInterval: 25000
+// On Page Load
+window.addEventListener("load", () => {
+  const path = window.location.pathname;
+  if (path.startsWith("/room/")) {
+    roomCode = path.split("/")[2];
+    document.title = `LinkDrop • ${roomCode}`;
+    console.log("🚀 Room code:", roomCode);
+    initRoom();
+  }
 });
 
-console.log("🌐 Socket.IO configured for https://linkdrop-phi.vercel.app");
+// Initialize Room
+async function initRoom() {
+  try {
+    // Connect to your Railway backend
+    socket = io("https://linkdrop-production.up.railway.app");
 
-// Room storage
-const rooms = {};
+    // Wait for connection before doing anything
+    socket.on("connect", () => {
+      console.log("✅ Socket connected:", socket.id);
+      // Now join room with valid socket.id
+      socket.emit("join-room", roomCode, socket.id);
+    });
 
-io.on("connection", (socket) => {
-  console.log("🔌 New client connected:", socket.id);
+    socket.on("connect_error", (err) => {
+      console.error("❌ Socket connection error:", err);
+      status.textContent = "Connection failed. Check your network.";
+    });
 
-  socket.on("join-room", (roomCode, userId) => {
-    console.log(`🚪 join-room: ${roomCode}, userId: ${userId}`);
+    // Get camera
+    localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+    localVideo.srcObject = localStream;
 
-    if (!rooms[roomCode]) {
-      rooms[roomCode] = { hostId: userId };
-      socket.join(roomCode);
-      console.log(`👑 Host created room: ${roomCode}`);
-    } else if (rooms[roomCode].hostId) {
-      rooms[roomCode].pendingId = userId;
-      socket.join(roomCode);
-      console.log(`👤 Guest joined room: ${roomCode}, awaiting approval`);
-      socket.broadcast.to(rooms[roomCode].hostId).emit("request-join");
+    // Listen for events
+    socket.on("request-join", () => {
+      console.log("🔔 Incoming connection request");
+      isHost = true;
+      status.textContent = "🔔 Incoming request";
+      approvalPopup.style.display = "block";
+    });
+
+    socket.on("accepted", () => {
+      console.log("✅ Connection accepted. Starting WebRTC...");
+      status.textContent = "🟢 Connected (P2P)";
+      approvalPopup.style.display = "none";
+      createPeerConnection();
+    });
+
+    socket.on("rejected", () => {
+      console.log("❌ Connection rejected");
+      alert("Access denied.");
+      window.location.href = "/";
+    });
+
+  } catch (err) {
+    console.error("❌ initRoom error:", err);
+    status.textContent = "Error: " + err.message;
+  }
+}
+
+// Create WebRTC Peer Connection
+function createPeerConnection() {
+  peerConnection = new RTCPeerConnection(config);
+
+  // Send local tracks
+  localStream.getTracks().forEach(track => {
+    peerConnection.addTrack(track, localStream);
+  });
+
+  // Handle remote stream
+  peerConnection.ontrack = (event) => {
+    if (remoteVideo.srcObject !== event.streams[0]) {
+      console.log("📹 Remote stream received");
+      remoteVideo.srcObject = event.streams[0];
     }
-  });
+  };
 
-  socket.on("accept", (roomCode) => {
-    console.log(`✅ Host accepted guest in room: ${roomCode}`);
-    if (rooms[roomCode]?.pendingId) {
-      const guestId = rooms[roomCode].pendingId;
-      socket.broadcast.to(guestId).emit("accepted");
-      console.log(`📨 Sent 'accepted' to guest: ${guestId}`);
-    } else {
-      console.log(`❌ No pending guest in room ${roomCode}`);
+  // Send ICE candidates
+  peerConnection.onicecandidate = (event) => {
+    if (event.candidate) {
+      socket.emit("ice-candidate", roomCode, event.candidate);
     }
-  });
+  };
 
-  socket.on("reject", (roomCode) => {
-    console.log(`❌ Host rejected guest in room: ${roomCode}`);
-    if (rooms[roomCode]?.pendingId) {
-      socket.broadcast.to(rooms[roomCode].pendingId).emit("rejected");
-      delete rooms[roomCode].pendingId;
-    }
-  });
+  // Create offer
+  peerConnection.createOffer()
+    .then(offer => {
+      console.log("📤 Creating offer...");
+      return peerConnection.setLocalDescription(offer);
+    })
+    .then(() => {
+      socket.emit("offer", roomCode, peerConnection.localDescription);
+    })
+    .catch(err => console.error("❌ Offer failed:", err));
+}
 
-  socket.on("offer", (roomCode, offer) => {
-    console.log(`📤 Offer sent in room: ${roomCode}`);
-    socket.broadcast.to(roomCode).emit("offer", offer);
-  });
+// Signaling Handlers (handled via socket.on in initRoom)
 
-  socket.on("answer", (roomCode, answer) => {
-    console.log(`📥 Answer sent in room: ${roomCode}`);
-    socket.broadcast.to(roomCode).emit("answer", answer);
-  });
+// UI Controls
+function toggleAudio() {
+  const track = localStream.getAudioTracks()[0];
+  if (track) {
+    track.enabled = !track.enabled;
+    document.querySelector('.controls [title="Mute Audio"]').style.color = track.enabled ? "#fff" : "#f00";
+  }
+}
 
-  socket.on("ice-candidate", (roomCode, candidate) => {
-    console.log(`🌐 ICE candidate in room: ${roomCode}`);
-    socket.broadcast.to(roomCode).emit("ice-candidate", candidate);
-  });
+function toggleVideo() {
+  const track = localStream.getVideoTracks()[0];
+  if (track) {
+    track.enabled = !track.enabled;
+    document.querySelector('.controls [title="Stop Camera"]').style.color = track.enabled ? "#fff" : "#666";
+  }
+}
 
-  socket.on("disconnect", () => {
-    for (const roomCode in rooms) {
-      if (rooms[roomCode].hostId === socket.id) {
-        console.log(`💀 Host disconnected. Destroying room: ${roomCode}`);
-        if (rooms[roomCode].pendingId) {
-          socket.broadcast.to(rooms[roomCode].pendingId).emit("rejected");
-        }
-        delete rooms[roomCode];
-      } else if (rooms[roomCode].pendingId === socket.id) {
-        console.log(`🚪 Guest disconnected from room: ${roomCode}`);
-        delete rooms[roomCode].pendingId;
-      }
-    }
-  });
-});
+function fullscreen() {
+  document.body.requestFullscreen().catch(e => console.error("Fullscreen error:", e));
+}
 
-// Start server
-const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
-  console.log(`✅ Signaling server running on port ${PORT}`);
-  console.log(`🔗 Connect from: https://linkdrop-phi.vercel.app`);
-});
+function copyLink() {
+  navigator.clipboard.writeText(window.location.href)
+    .then(() => alert("Link copied!"))
+    .catch(err => console.error("Copy failed:", err));
+}
 
-// Graceful shutdown
-process.on('SIGTERM', () => {
-  console.log('👋 SIGTERM: Shutting down gracefully...');
-  server.close(() => {
-    console.log('💥 HTTP server closed');
-    process.exit(0);
-  });
-});
+function newRoom() {
+  const code = Math.random().toString(36).substr(2, 6).toUpperCase();
+  window.location.href = `/room/${code}`;
+}
 
-process.on('SIGINT', () => {
-  console.log('👋 SIGINT: Shutting down...');
-  process.exit(0);
-});
+// Approval Actions
+acceptBtn.onclick = () => {
+  console.log("📤 Host clicked ACCEPT for room:", roomCode);
+  socket.emit("accept", roomCode);
+  approvalPopup.style.display = "none";
+  createPeerConnection();
+};
+
+rejectBtn.onclick = () => {
+  console.log("❌ Host clicked REJECT for room:", roomCode);
+  socket.emit("reject", roomCode);
+  approvalPopup.style.display = "none";
+  status.textContent = "Awaiting connection...";
+};

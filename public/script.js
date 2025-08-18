@@ -1,5 +1,4 @@
-// DOM
-const status = document.getElementById("status");
+// DOM Elements
 const statusText = document.getElementById("statusText");
 const localVideo = document.getElementById("localVideo");
 const remoteVideo = document.getElementById("remoteVideo");
@@ -33,6 +32,7 @@ window.addEventListener("load", () => {
 // Initialize Room
 async function initRoom() {
   try {
+    // Connect to backend
     socket = io("https://linkdrop-production.up.railway.app");
 
     socket.on("connect", () => {
@@ -45,16 +45,20 @@ async function initRoom() {
       statusText.textContent = "Connection failed";
     });
 
+    // Get camera
     localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
     localVideo.srcObject = localStream;
 
+    // Listen for events
     socket.on("request-join", () => {
+      console.log("🔔 Incoming request");
       isHost = true;
       statusText.textContent = "🔔 Incoming request";
       approvalPopup.style.display = "block";
     });
 
     socket.on("accepted", () => {
+      console.log("✅ Connected (P2P)");
       statusText.textContent = "🟢 Connected (P2P)";
       approvalPopup.style.display = "none";
       youBox.classList.add("connected");
@@ -79,7 +83,9 @@ async function initRoom() {
       };
 
       peerConnection.onicecandidate = (e) => {
-        if (e.candidate) socket.emit("ice-candidate", roomCode, e.candidate);
+        if (e.candidate) {
+          socket.emit("ice-candidate", roomCode, e.candidate);
+        }
       };
 
       await peerConnection.setRemoteDescription(new RTCSessionDescription(desc));
@@ -102,9 +108,13 @@ async function initRoom() {
   }
 }
 
+// Create WebRTC Connection (Host only)
 function createPeerConnection() {
   peerConnection = new RTCPeerConnection(config);
-  localStream.getTracks().forEach(t => peerConnection.addTrack(t, localStream));
+
+  localStream.getTracks().forEach(track => {
+    peerConnection.addTrack(track, localStream);
+  });
 
   peerConnection.ontrack = (e) => {
     if (remoteVideo.srcObject !== e.streams[0]) {
@@ -113,12 +123,17 @@ function createPeerConnection() {
   };
 
   peerConnection.onicecandidate = (e) => {
-    if (e.candidate) socket.emit("ice-candidate", roomCode, e.candidate);
+    if (e.candidate) {
+      socket.emit("ice-candidate", roomCode, e.candidate);
+    }
   };
 
   peerConnection.createOffer()
-    .then(o => peerConnection.setLocalDescription(o))
-    .then(() => socket.emit("offer", roomCode, peerConnection.localDescription));
+    .then(offer => peerConnection.setLocalDescription(offer))
+    .then(() => {
+      socket.emit("offer", roomCode, peerConnection.localDescription);
+    })
+    .catch(err => console.error("Offer failed:", err));
 }
 
 // UI Controls
@@ -137,8 +152,9 @@ function toggleVideo() {
   }
 }
 
+// Toggle between compact and expanded view
 function fullscreen() {
-  document.body.requestFullscreen().catch(e => console.error(e));
+  document.body.classList.toggle("fullscreen");
 }
 
 function copyLink() {
@@ -152,7 +168,7 @@ function newRoom() {
   window.location.href = `/room/${code}`;
 }
 
-// Approval
+// Approval Actions
 acceptBtn.onclick = () => {
   socket.emit("accept", roomCode);
   approvalPopup.style.display = "none";

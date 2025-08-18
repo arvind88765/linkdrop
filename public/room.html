@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <title>LinkDrop • Room</title>
-  <link rel="stylesheet" href="style.css" />
+  <!-- ✅ Fixed: Absolute path with / -->
+  <link rel="stylesheet" href="/style.css" />
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 </head>
 <body>
@@ -34,7 +35,9 @@
     <button onclick="newRoom()" title="New Room">🔁</button>
   </div>
 
+  <!-- ✅ Fixed: NO SPACES, clean URL -->
   <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
-  <script src="script.js"></script>
+  <!-- ✅ Fixed: Absolute path -->
+  <script src="/script.js"></script>
 </body>
 </html>

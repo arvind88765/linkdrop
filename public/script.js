@@ -1,4 +1,4 @@
-// DOM Elements
+// DOM
 const status = document.getElementById("status");
 const localVideo = document.getElementById("localVideo");
 const remoteVideo = document.getElementById("remoteVideo");
@@ -13,12 +13,10 @@ let socket = null;
 let localStream = null;
 let peerConnection = null;
 
-// STUN server (P2P)
-const config = {
-  iceServers: [{ urls: "stun:stun.l.google.com:19302" }]
-};
+// WebRTC config
+const config = { iceServers: [{ urls: "stun:stun.l.google.com:19302" }] };
 
-// On Page Load
+// On Load
 window.addEventListener("load", () => {
   const path = window.location.pathname;
   if (path.startsWith("/room/")) {
@@ -29,19 +27,18 @@ window.addEventListener("load", () => {
   }
 });
 
-// Initialize Room & Socket
+// Initialize Room
 async function initRoom() {
   try {
-    // ✅ FIXED: No spaces, clean URL
+    // Connect to Railway backend
     socket = io("https://linkdrop-production.up.railway.app");
 
-    // Debug: Check if socket connects
     socket.on("connect", () => {
       console.log("✅ Socket connected:", socket.id);
     });
 
     socket.on("connect_error", (err) => {
-      console.error("❌ Socket connect error:", err);
+      console.error("❌ Socket error:", err);
       status.textContent = "Connection failed. Check console.";
     });
 
@@ -78,48 +75,37 @@ async function initRoom() {
     });
 
   } catch (err) {
-    console.error("Error in initRoom:", err);
+    console.error("Init error:", err);
     status.textContent = "Error: " + err.message;
   }
 }
 
-// Create WebRTC Peer Connection
+// Create WebRTC Connection
 function createPeerConnection() {
   peerConnection = new RTCPeerConnection(config);
 
-  // Send local tracks
-  localStream.getTracks().forEach(track => {
-    peerConnection.addTrack(track, localStream);
-  });
+  localStream.getTracks().forEach(t => peerConnection.addTrack(t, localStream));
 
-  // Handle remote stream
-  peerConnection.ontrack = (event) => {
-    if (remoteVideo.srcObject !== event.streams[0]) {
-      remoteVideo.srcObject = event.streams[0];
+  peerConnection.ontrack = (e) => {
+    if (remoteVideo.srcObject !== e.streams[0]) {
+      remoteVideo.srcObject = e.streams[0];
     }
   };
 
-  // Send ICE candidates
-  peerConnection.onicecandidate = (event) => {
-    if (event.candidate) {
-      socket.emit("ice-candidate", roomCode, event.candidate);
+  peerConnection.onicecandidate = (e) => {
+    if (e.candidate) {
+      socket.emit("ice-candidate", roomCode, e.candidate);
     }
   };
 
-  // Create offer
   peerConnection.createOffer()
-    .then(offer => peerConnection.setLocalDescription(offer))
-    .then(() => {
-      socket.emit("offer", roomCode, peerConnection.localDescription);
-    })
-    .catch(err => console.error("Offer error:", err));
+    .then(o => peerConnection.setLocalDescription(o))
+    .then(() => socket.emit("offer", roomCode, peerConnection.localDescription))
+    .catch(err => console.error("Offer failed:", err));
 }
 
-// Signaling Listeners (must be after socket is defined)
-socket = null; // Remove this line if present — already declared
-
-// These listeners stay in initRoom or after socket is ready
-// They are now safely inside initRoom or bound after connection
+// Signaling Handlers
+// (Handled inside initRoom)
 
 // UI Controls
 function toggleAudio() {
@@ -139,9 +125,7 @@ function toggleVideo() {
 }
 
 function fullscreen() {
-  if (document.body.requestFullscreen) {
-    document.body.requestFullscreen();
-  }
+  document.body.requestFullscreen().catch(e => console.error(e));
 }
 
 function copyLink() {
@@ -151,11 +135,11 @@ function copyLink() {
 }
 
 function newRoom() {
-  const newCode = Math.random().toString(36).substr(2, 6).toUpperCase();
-  window.location.href = `/room/${newCode}`;
+  const code = Math.random().toString(36).substr(2, 6).toUpperCase();
+  window.location.href = `/room/${code}`;
 }
 
-// Approval Actions
+// Approval
 acceptBtn.onclick = () => {
   socket.emit("accept", roomCode);
   approvalPopup.style.display = "none";

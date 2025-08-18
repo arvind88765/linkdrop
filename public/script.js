@@ -26,7 +26,7 @@ window.addEventListener("load", () => {
 
 async function initRoom() {
   // Connect to your Railway backend
-  const socket = io("https://linkdrop-production.up.railway.app"); // ← CHANGE THIS LATER
+  socket = io("https://linkdrop-production.up.railway.app"); // ← CHANGE THIS LATER
 
   // Get camera
   try {

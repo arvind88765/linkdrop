@@ -1,44 +1,138 @@
-/* Terminal-Style Body */
-body.room {
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
   background: #000;
   color: #fff;
   font-family: 'JetBrains Mono', monospace;
-  margin: 0;
-  padding: 0;
   height: 100vh;
   overflow: hidden;
 }
 
-/* Status Bar - Top */
+/* Landing Page */
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  text-align: center;
+}
+
+h1 { 
+  font-size: 32px; 
+  margin-bottom: 16px; 
+  letter-spacing: 1px; 
+}
+p { 
+  color: #aaa; 
+  margin-bottom: 32px; 
+}
+
+.buttons button {
+  background: none;
+  border: 1px solid #00f5ff;
+  color: #00f5ff;
+  padding: 12px 24px;
+  margin: 0 10px;
+  cursor: pointer;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  transition: 0.3s;
+}
+
+.buttons button:hover {
+  background: rgba(0, 245, 255, 0.1);
+  box-shadow: 0 0 0 1px #00f5ff;
+}
+
+/* Modal */
+.modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #000;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  flex-direction: column;
+  padding: 20px;
+}
+
+.modal-content {
+  background: #0a0a0a;
+  border: 1px solid rgba(0, 245, 255, 0.2);
+  padding: 30px;
+  border-radius: 8px;
+  text-align: center;
+  max-width: 400px;
+  width: 100%;
+  color: #fff;
+}
+
+.modal-content h2 {
+  margin-bottom: 16px;
+  font-size: 18px;
+}
+
+.modal-content .code {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 28px;
+  margin: 20px 0;
+  letter-spacing: 2px;
+  color: #00f5ff;
+}
+
+.modal-buttons {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.modal-buttons button {
+  padding: 10px 16px;
+  border: 1px solid rgba(0, 245, 255, 0.3);
+  background: rgba(0, 245, 255, 0.1);
+  color: #00f5ff;
+  cursor: pointer;
+  font-size: 13px;
+  flex: 1;
+  border-radius: 4px;
+}
+
+.modal-buttons button.primary {
+  background: #00f5ff;
+  color: #000;
+  font-weight: 500;
+}
+
+.small {
+  margin-top: 16px;
+  font-size: 12px;
+  color: #aaa;
+}
+
+/* Video & Status */
 .status-bar {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
-  background: rgba(10, 10, 10, 0.8);
+  background: rgba(10,10,10,0.8);
   backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
   padding: 6px 16px;
   font-size: 12px;
   color: #00f5ff;
   text-align: center;
   z-index: 10;
-  border-bottom: 1px solid rgba(0, 245, 255, 0.2);
+  border-bottom: 1px solid rgba(0,245,255,0.2);
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
-.status-bar .room-code {
-  letter-spacing: 1px;
-}
-
-.status-bar .status-text {
-  font-size: 11px;
-  color: #aaa;
-}
-
-/* Video Grid */
 .video-grid {
   display: flex;
   width: 100%;
@@ -73,7 +167,6 @@ body.room {
   letter-spacing: 0.8px;
 }
 
-/* Pulse on connect */
 .video-box.connected {
   box-shadow: 0 0 0 2px #00f5ff;
   animation: pulse 2s infinite alternate;
@@ -84,7 +177,7 @@ body.room {
   to { opacity: 1; }
 }
 
-/* Controls - Bottom Right */
+/* Controls */
 .controls {
   position: fixed;
   bottom: 20px;
@@ -108,7 +201,6 @@ body.room {
   justify-content: center;
   font-size: 14px;
   border-radius: 4px;
-  transition: all 0.2s;
 }
 
 .controls button:hover {
@@ -116,9 +208,7 @@ body.room {
   box-shadow: 0 0 0 1px #00f5ff;
 }
 
-body:hover .controls {
-  opacity: 1;
-}
+body:hover .controls { opacity: 1; }
 
 /* Popup */
 .popup {
@@ -132,12 +222,6 @@ body:hover .controls {
   border-radius: 4px;
   text-align: center;
   z-index: 100;
-  max-width: 300px;
-}
-
-.popup p {
-  margin-bottom: 16px;
-  font-weight: 500;
 }
 
 .popup button {
@@ -151,4 +235,11 @@ body:hover .controls {
 
 .popup button:hover {
   background: rgba(0, 245, 255, 0.1);
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .modal-buttons { flex-direction: column; }
+  .video-grid { flex-direction: column; }
+  .status-bar { font-size: 11px; }
 }

@@ -32,7 +32,6 @@ window.addEventListener("load", () => {
 // Initialize Room
 async function initRoom() {
   try {
-    // Connect to backend
     socket = io("https://linkdrop-production.up.railway.app");
 
     socket.on("connect", () => {
@@ -45,20 +44,16 @@ async function initRoom() {
       statusText.textContent = "Connection failed";
     });
 
-    // Get camera
     localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
     localVideo.srcObject = localStream;
 
-    // Listen for events
     socket.on("request-join", () => {
-      console.log("🔔 Incoming request");
       isHost = true;
       statusText.textContent = "🔔 Incoming request";
       approvalPopup.style.display = "block";
     });
 
     socket.on("accepted", () => {
-      console.log("✅ Connected (P2P)");
       statusText.textContent = "🟢 Connected (P2P)";
       approvalPopup.style.display = "none";
       youBox.classList.add("connected");
@@ -71,23 +66,11 @@ async function initRoom() {
       window.location.href = "/";
     });
 
-    // WebRTC Signaling
     socket.on("offer", async (desc) => {
       peerConnection = new RTCPeerConnection(config);
       localStream.getTracks().forEach(t => peerConnection.addTrack(t, localStream));
-
-      peerConnection.ontrack = (e) => {
-        if (remoteVideo.srcObject !== e.streams[0]) {
-          remoteVideo.srcObject = e.streams[0];
-        }
-      };
-
-      peerConnection.onicecandidate = (e) => {
-        if (e.candidate) {
-          socket.emit("ice-candidate", roomCode, e.candidate);
-        }
-      };
-
+      peerConnection.ontrack = e => { if (remoteVideo.srcObject !== e.streams[0]) remoteVideo.srcObject = e.streams[0]; };
+      peerConnection.onicecandidate = e => { if (e.candidate) socket.emit("ice-candidate", roomCode, e.candidate); };
       await peerConnection.setRemoteDescription(new RTCSessionDescription(desc));
       const answer = await peerConnection.createAnswer();
       await peerConnection.setLocalDescription(answer);
@@ -108,32 +91,15 @@ async function initRoom() {
   }
 }
 
-// Create WebRTC Connection (Host only)
+// Create WebRTC Connection
 function createPeerConnection() {
   peerConnection = new RTCPeerConnection(config);
-
-  localStream.getTracks().forEach(track => {
-    peerConnection.addTrack(track, localStream);
-  });
-
-  peerConnection.ontrack = (e) => {
-    if (remoteVideo.srcObject !== e.streams[0]) {
-      remoteVideo.srcObject = e.streams[0];
-    }
-  };
-
-  peerConnection.onicecandidate = (e) => {
-    if (e.candidate) {
-      socket.emit("ice-candidate", roomCode, e.candidate);
-    }
-  };
-
+  localStream.getTracks().forEach(t => peerConnection.addTrack(t, localStream));
+  peerConnection.ontrack = e => { if (remoteVideo.srcObject !== e.streams[0]) remoteVideo.srcObject = e.streams[0]; };
+  peerConnection.onicecandidate = e => { if (e.candidate) socket.emit("ice-candidate", roomCode, e.candidate); };
   peerConnection.createOffer()
-    .then(offer => peerConnection.setLocalDescription(offer))
-    .then(() => {
-      socket.emit("offer", roomCode, peerConnection.localDescription);
-    })
-    .catch(err => console.error("Offer failed:", err));
+    .then(o => peerConnection.setLocalDescription(o))
+    .then(() => socket.emit("offer", roomCode, peerConnection.localDescription));
 }
 
 // UI Controls
@@ -152,9 +118,21 @@ function toggleVideo() {
   }
 }
 
-// Toggle between compact and expanded view
-function fullscreen() {
-  document.body.classList.toggle("fullscreen");
+function expandVideo(boxId) {
+  const isYou = boxId === 'youBox';
+  const isThem = boxId === 'themBox';
+
+  if (document.body.classList.contains('fullscreen-you') && isYou) {
+    document.body.classList.remove('fullscreen-you');
+  } else if (document.body.classList.contains('fullscreen-them') && isThem) {
+    document.body.classList.remove('fullscreen-them');
+  } else if (isYou) {
+    document.body.classList.add('fullscreen-you');
+    document.body.classList.remove('fullscreen-them');
+  } else if (isThem) {
+    document.body.classList.add('fullscreen-them');
+    document.body.classList.remove('fullscreen-you');
+  }
 }
 
 function copyLink() {
@@ -168,7 +146,7 @@ function newRoom() {
   window.location.href = `/room/${code}`;
 }
 
-// Approval Actions
+// Approval
 acceptBtn.onclick = () => {
   socket.emit("accept", roomCode);
   approvalPopup.style.display = "none";

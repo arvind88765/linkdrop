@@ -4,11 +4,11 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>LinkDrop</title>
-  <link rel="stylesheet" href="/style.css" />
+  <link rel="stylesheet" href="style.css" />
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 </head>
 <body>
-  <div id="landing" class="container">
+  <div class="container">
     <h1>LINKDROP</h1>
     <p>Connect. Privately.</p>
     <div class="buttons">
@@ -16,51 +16,18 @@
       <button onclick="joinRoom()">JOIN ROOM</button>
     </div>
   </div>
-
-  <div id="roomModal" class="modal" style="display: none;">
-    <div class="modal-content">
-      <h2>Room Created</h2>
-      <p class="code" id="roomCodeDisplay">ABC123</p>
-      <div class="modal-buttons">
-        <button onclick="copyRoomLink()" id="copyBtn">📋 Copy Link</button>
-        <button onclick="enterRoom()" class="primary">▶️ Enter Room</button>
-      </div>
-      <p class="small">Share this link to let someone join.</p>
-    </div>
-  </div>
-
   <script>
     function createRoom() {
       const code = Math.random().toString(36).substr(2, 6).toUpperCase();
-      document.getElementById("roomCodeDisplay").textContent = code;
-      document.getElementById("landing").style.display = "none";
-      document.getElementById("roomModal").style.display = "flex";
+      window.location = `/room/${code}`;
     }
-
     function joinRoom() {
       const code = prompt("Enter 6-digit room code:").trim().toUpperCase();
       if (code && /^[A-Z0-9]{6}$/.test(code)) {
-        window.location.href = `/room/${code}`;
+        window.location = `/room/${code}`;
       } else {
         alert("Invalid code. Must be 6 characters.");
       }
-    }
-
-    function copyRoomLink() {
-      const code = document.getElementById("roomCodeDisplay").textContent;
-      const link = `${window.location.origin}/room/${code}`;
-      navigator.clipboard.writeText(link).then(() => {
-        const btn = document.getElementById("copyBtn");
-        btn.textContent = "✅ Copied!";
-        setTimeout(() => {
-          btn.textContent = "📋 Copy Link";
-        }, 2000);
-      }).catch(() => alert("Could not copy."));
-    }
-
-    function enterRoom() {
-      const code = document.getElementById("roomCodeDisplay").textContent;
-      window.location.href = `/room/${code}`;
     }
   </script>
 </body>

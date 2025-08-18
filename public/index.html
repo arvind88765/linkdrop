@@ -8,7 +8,6 @@
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 </head>
 <body>
-  <!-- Landing Page -->
   <div id="landing" class="container">
     <h1>LINKDROP</h1>
     <p>Connect. Privately.</p>
@@ -18,7 +17,6 @@
     </div>
   </div>
 
-  <!-- Room Created Modal -->
   <div id="roomModal" class="modal" style="display: none;">
     <div class="modal-content">
       <h2>Room Created</h2>
@@ -57,10 +55,7 @@
         setTimeout(() => {
           btn.textContent = "📋 Copy Link";
         }, 2000);
-      }).catch(err => {
-        console.error("Copy failed", err);
-        alert("Could not copy. Share manually.");
-      });
+      }).catch(() => alert("Could not copy."));
     }
 
     function enterRoom() {

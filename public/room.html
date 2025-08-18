@@ -3,13 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <title>LinkDrop • Room</title>
-  <link rel="stylesheet" href="/style.css" />
+  <link rel="stylesheet" href="style.css" />
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 </head>
 <body>
-  <div class="status-bar">
-    Room: <strong id="roomCode">LOADING</strong> • <span id="statusText">Waiting...</span>
-  </div>
+  <div class="status-bar" id="status">Waiting...</div>
 
   <div class="video-grid">
     <div class="video-box">
@@ -30,13 +28,13 @@
 
   <div class="controls" id="controls">
     <button onclick="toggleAudio()" title="Mute Audio">🔇</button>
-    <button onclick="toggleVideo()" title="Stop Camera">🎥</button>
+    <button onclick="toggleVideo()" title="Stop Camera">🛑</button>
     <button onclick="fullscreen()" title="Fullscreen">↗️</button>
     <button onclick="copyLink()" title="Copy Link">📋</button>
     <button onclick="newRoom()" title="New Room">🔁</button>
   </div>
 
   <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
-  <script src="/script.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>

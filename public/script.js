@@ -1,3 +1,4 @@
+// DOM Elements
 const statusText = document.getElementById("statusText");
 const localVideo = document.getElementById("localVideo");
 const remoteVideo = document.getElementById("remoteVideo");
@@ -5,14 +6,17 @@ const approvalPopup = document.getElementById("approvalPopup");
 const acceptBtn = document.getElementById("acceptBtn");
 const rejectBtn = document.getElementById("rejectBtn");
 
+// State
 let roomCode = null;
 let isHost = false;
 let socket = null;
 let localStream = null;
 let peerConnection = null;
 
+// WebRTC config
 const config = { iceServers: [{ urls: "stun:stun.l.google.com:19302" }] };
 
+// On Load
 window.addEventListener("load", () => {
   const path = window.location.pathname;
   if (path.startsWith("/room/")) {
@@ -23,15 +27,18 @@ window.addEventListener("load", () => {
   }
 });
 
+// Initialize Room
 async function initRoom() {
   try {
     socket = io("https://linkdrop-production.up.railway.app");
 
     socket.on("connect", () => {
+      console.log("✅ Socket connected:", socket.id);
       socket.emit("join-room", roomCode, socket.id);
     });
 
     socket.on("connect_error", (err) => {
+      console.error("❌ Socket error:", err);
       statusText.textContent = "Connection failed";
     });
 
@@ -75,10 +82,12 @@ async function initRoom() {
     });
 
   } catch (err) {
+    console.error("Init error:", err);
     statusText.textContent = "Error: " + err.message;
   }
 }
 
+// Create WebRTC Connection
 function createPeerConnection() {
   peerConnection = new RTCPeerConnection(config);
   localStream.getTracks().forEach(t => peerConnection.addTrack(t, localStream));
@@ -89,6 +98,7 @@ function createPeerConnection() {
     .then(() => socket.emit("offer", roomCode, peerConnection.localDescription));
 }
 
+// UI Controls
 function toggleAudio() {
   const track = localStream.getAudioTracks()[0];
   if (track) track.enabled = !track.enabled;
@@ -112,6 +122,7 @@ function newRoom() {
   window.location.href = `/room/${code}`;
 }
 
+// Approval Actions
 acceptBtn.onclick = () => {
   socket.emit("accept", roomCode);
   approvalPopup.style.display = "none";

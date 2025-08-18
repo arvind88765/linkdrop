@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>LinkDrop</title>
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="container">
+    <h1>LINKDROP</h1>
+    <p>Connect. Privately.</p>
+    <div class="buttons">
+      <button onclick="createRoom()">CREATE ROOM</button>
+      <button onclick="joinRoom()">JOIN ROOM</button>
+    </div>
+  </div>
+  <script>
+    function createRoom() {
+      const code = Math.random().toString(36).substr(2, 6).toUpperCase();
+      window.location = `/room/${code}`;
+    }
+    function joinRoom() {
+      const code = prompt("Enter 6-digit room code:").trim().toUpperCase();
+      if (code && /^[A-Z0-9]{6}$/.test(code)) {
+        window.location = `/room/${code}`;
+      } else {
+        alert("Invalid code. Must be 6 characters.");
+      }
+    }
+  </script>
+</body>
+</html>

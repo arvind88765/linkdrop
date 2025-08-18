@@ -6,7 +6,7 @@ const app = express();
 const server = http.createServer(app);
 const io = socketIo(server, {
   cors: {
-    origin: "https://yourlinkdrop.vercel.app", // ← CHANGE TO YOUR VERCCEL DOMAIN
+    origin: "https://yourlinkdrop.vercel.app", // ← CHANGE TO YOUR DOMAIN
     methods: ["GET", "POST"]
   }
 });

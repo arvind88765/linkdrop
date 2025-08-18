@@ -63,14 +63,17 @@ io.on("connection", (socket) => {
 
   // WebRTC Signaling
   socket.on("offer", (roomCode, offer) => {
+    console.log(`📤 Offer sent in room: ${roomCode}`);
     socket.broadcast.to(roomCode).emit("offer", offer);
   });
 
   socket.on("answer", (roomCode, answer) => {
+    console.log(`📥 Answer sent in room: ${roomCode}`);
     socket.broadcast.to(roomCode).emit("answer", answer);
   });
 
   socket.on("ice-candidate", (roomCode, candidate) => {
+    console.log(`🌐 ICE candidate in room: ${roomCode}`);
     socket.broadcast.to(roomCode).emit("ice-candidate", candidate);
   });
 

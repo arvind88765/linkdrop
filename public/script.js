@@ -1,69 +1,109 @@
-// ----- DOM -----
+// ===== DOM =====
 const roomLabel = document.getElementById('roomLabel');
 const localVideo = document.getElementById('localVideo');
 const remoteVideo = document.getElementById('remoteVideo');
 const approvalPopup = document.getElementById('approvalPopup');
 const acceptBtn = document.getElementById('acceptBtn');
 const rejectBtn = document.getElementById('rejectBtn');
-
 const youBox = document.getElementById('youBox');
 const themBox = document.getElementById('themBox');
 
-// ----- State -----
+// ===== State =====
 let socket = null;
 let roomCode = null;
 let isHost = false;
-
 let localStream = null;
 let pc = null;
 
 const rtcConfig = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
 
-// ----- Utils -----
+// ===== Utils =====
 function setRoomBadge(code){ if(roomLabel) roomLabel.textContent = `Room — ${code}`; }
+function toast(msg){
+  const base = `Room — ${roomCode}`;
+  if (roomLabel){
+    roomLabel.textContent = `${base}   • ${msg}`;
+    setTimeout(()=> setRoomBadge(roomCode), 1200);
+  }
+}
 function copyLink(){
   navigator.clipboard.writeText(location.href)
     .then(()=> toast('Link copied'))
     .catch(()=> toast('Copy failed'));
 }
-function toast(msg){
-  // lightweight toast via status-bar color flash
-  roomLabel.style.color = '#00f5ff';
-  roomLabel.textContent = `${roomLabel.textContent.split('—')[0]}— ${msg}`;
-  setTimeout(()=> setRoomBadge(roomCode), 900);
-}
 function newRoom(){
   const code = Math.random().toString(36).substr(2,6).toUpperCase();
   location.href = `/room/${code}`;
 }
-function fullscreenYou(){ document.body.classList.add('fullscreen-you'); document.body.classList.remove('fullscreen-them'); }
-function fullscreenThem(){ document.body.classList.add('fullscreen-them'); document.body.classList.remove('fullscreen-you'); }
+function fullscreenPage(){
+  (document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen())
+    .catch(()=>{});
+}
+function enterTileFullscreen(target){
+  document.body.classList.remove('fullscreen-you','fullscreen-them');
+  if (target === 'you') document.body.classList.add('fullscreen-you');
+  if (target === 'them') document.body.classList.add('fullscreen-them');
+}
+function exitTileFullscreen(){
+  document.body.classList.remove('fullscreen-you','fullscreen-them');
+}
+async function pip(){
+  const v = remoteVideo?.srcObject ? remoteVideo : localVideo;
+  if (!v) return;
+  try { await v.requestPictureInPicture(); } catch {}
+}
+function swapVideos(){
+  // swap order of tiles visually
+  const parent = youBox.parentElement;
+  if (youBox.nextElementSibling === themBox) parent.insertBefore(themBox, youBox);
+  else parent.insertBefore(youBox, themBox);
+}
 
-// expose some for HTML
+// Expose for HTML
 window.copyLink = copyLink;
 window.newRoom = newRoom;
-window.fullscreenYou = fullscreenYou;
-window.fullscreenThem = fullscreenThem;
+window.fullscreenPage = fullscreenPage;
+window.pip = pip;
 
-// ----- Page init -----
+// ===== Init =====
 window.addEventListener('load', async () => {
-  // room routing /room/XXXXXX
   const parts = location.pathname.split('/').filter(Boolean);
   if (parts[0] === 'room' && parts[1]) {
     roomCode = parts[1].toUpperCase();
     setRoomBadge(roomCode);
     await startRoom();
   }
+
+  // Expand buttons on the video itself
+  document.querySelectorAll('.v-action.expand').forEach(btn=>{
+    btn.addEventListener('click', () => enterTileFullscreen(btn.dataset.target));
+  });
+
+  // Swap tiles
+  const swapBtn = document.querySelector('.v-action.swap');
+  if (swapBtn) swapBtn.addEventListener('click', swapVideos);
+
+  // Double-click video to toggle tile fullscreen
+  [localVideo, remoteVideo].forEach((v)=>{
+    v?.addEventListener('dblclick', ()=>{
+      if (document.body.classList.contains('fullscreen-you') || document.body.classList.contains('fullscreen-them')) {
+        exitTileFullscreen();
+      } else {
+        enterTileFullscreen(v === localVideo ? 'you' : 'them');
+      }
+    });
+  });
+
+  // ESC exits tile fullscreen
+  document.addEventListener('keydown', (e)=>{ if (e.key === 'Escape') exitTileFullscreen(); });
 });
 
-// ----- Start room flow -----
+// ===== Signaling & WebRTC (backend unchanged) =====
 async function startRoom(){
-  // connect to your existing backend (unchanged)
   socket = io('https://linkdrop-production.up.railway.app');
 
   socket.on('connect', async () => {
     try {
-      // get local media
       localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
       localVideo.srcObject = localStream;
     } catch (err) {
@@ -71,7 +111,6 @@ async function startRoom(){
       toast('Enable camera/mic');
       return;
     }
-    // join room
     socket.emit('join-room', roomCode, socket.id);
   });
 
@@ -80,27 +119,18 @@ async function startRoom(){
     toast('Signaling failed');
   });
 
-  // someone wants to join (you are host)
+  // host flow
   socket.on('request-join', () => {
     isHost = true;
-    approvalPopup.style.display = 'block';
+    if (approvalPopup) approvalPopup.style.display = 'block';
   });
 
-  // host accepted you
-  socket.on('accepted', () => {
-    if (isHost) return; // guest will get offer, host creates it separately
-    toast('Accepted');
-  });
+  socket.on('accepted', () => { toast('Accepted'); });
+  socket.on('rejected', () => { toast('Rejected'); setTimeout(()=> location.href='/', 900); });
 
-  // host rejected you
-  socket.on('rejected', () => {
-    toast('Rejected');
-    setTimeout(()=> location.href='/', 800);
-  });
-
-  // WebRTC signaling
+  // signaling
   socket.on('offer', async (desc) => {
-    // guest receives offer
+    // guest
     pc = createPeer();
     localStream.getTracks().forEach(t => pc.addTrack(t, localStream));
     await pc.setRemoteDescription(new RTCSessionDescription(desc));
@@ -110,19 +140,15 @@ async function startRoom(){
   });
 
   socket.on('answer', async (desc) => {
-    // host receives answer
+    // host
     if (pc) await pc.setRemoteDescription(new RTCSessionDescription(desc));
   });
 
   socket.on('ice-candidate', async (candidate) => {
-    try {
-      await pc?.addIceCandidate(new RTCIceCandidate(candidate));
-    } catch (err) {
-      console.error('ICE add error', err);
-    }
+    try { await pc?.addIceCandidate(new RTCIceCandidate(candidate)); } catch (err) { console.error('ICE add error', err); }
   });
 
-  // approval buttons (host)
+  // approval buttons
   if (acceptBtn) acceptBtn.onclick = () => {
     socket.emit('accept', roomCode);
     approvalPopup.style.display = 'none';
@@ -160,7 +186,7 @@ async function createAndSendOffer(){
   socket.emit('offer', roomCode, offer);
 }
 
-// ----- Controls -----
+// ===== Mic / Cam toggles =====
 function setBtnOpacity(id, on){
   const el = document.getElementById(id);
   if (el) el.style.opacity = on ? '1' : '.55';

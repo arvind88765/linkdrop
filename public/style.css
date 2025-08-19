@@ -1,13 +1,17 @@
-/* ===== Base / Theme (unchanged vibe) ===== */
+/* ==== Base / Theme ==== */
 * { margin:0; padding:0; box-sizing:border-box; }
 :root{
   --bg:#000; --panel:#0a0a0a; --text:#fff; --muted:#aaa;
   --line:rgba(0,245,255,.22); --brand:#00f5ff;
 }
 html,body{ height:100%; }
-body{ background:var(--bg); color:var(--text); font-family:'JetBrains Mono', monospace; }
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:'JetBrains Mono', monospace;
+}
 
-/* ===== Status bar ===== */
+/* ==== Status Bar ==== */
 .status-bar{
   position:fixed; inset:0 0 auto 0; height:44px; z-index:20;
   display:flex; align-items:center; justify-content:space-between;
@@ -20,14 +24,51 @@ body{ background:var(--bg); color:var(--text); font-family:'JetBrains Mono', mon
 }
 .status-bar .ghost:hover{ background:rgba(0,245,255,.08); }
 
-/* ===== Room stage ===== */
+/* ==== Landing Page ==== */
+.page-home .container{
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  min-height:100dvh; text-align:center; padding:60px 16px;
+}
+.container h1{ font-size:clamp(24px,3.6vw,36px); letter-spacing:.6px; margin-bottom:12px; }
+.container p{ color:var(--muted); margin:0 0 22px; }
+.buttons{ display:flex; gap:14px; flex-wrap:wrap; justify-content:center; }
+.buttons button{
+  background:none; border:1px solid var(--brand); color:var(--brand);
+  padding:12px 18px; cursor:pointer; font-size:14px; text-transform:uppercase; letter-spacing:1px;
+  transition:.25s; border-radius:6px;
+}
+.buttons button:hover{ background:rgba(0,245,255,.1); box-shadow:0 0 0 1px var(--brand); }
+.small{ margin-top:8px; color:var(--muted); font-size:12px; }
+
+/* Modals (landing) */
+.modal{
+  display:none; position:fixed; inset:0; background:rgba(0,0,0,.9);
+  z-index:100; align-items:center; justify-content:center; padding:18px;
+}
+.modal-content{
+  background:var(--panel); border:1px solid var(--line); color:var(--text);
+  width:min(420px,92vw); border-radius:8px; padding:22px; text-align:center;
+}
+.modal-content h2{ font-size:18px; margin-bottom:10px; }
+.field input{
+  width:100%; padding:12px 12px; border-radius:6px; border:1px solid var(--line);
+  background:#060606; color:var(--text); letter-spacing:.12em; outline:none;
+}
+.modal-buttons{ display:flex; gap:10px; margin-top:16px; }
+.modal-buttons button{
+  flex:1; padding:10px 12px; border-radius:6px; cursor:pointer;
+  border:1px solid var(--line); background:rgba(0,245,255,.08); color:var(--brand);
+}
+.modal-buttons .primary{ background:var(--brand); color:#000; border-color:transparent; }
+
+/* ==== Room Layout ==== */
 .room-stage{
   position:fixed; inset:44px 0 0 0; /* below status bar */
   display:grid; gap:10px; padding:10px;
-  grid-template-columns: 1fr 1fr;  /* side-by-side on desktop */
+  grid-template-columns: 1fr 1fr;  /* side-by-side desktop */
 }
 @media (max-width: 900px){
-  .room-stage{ grid-template-columns: 1fr; } /* stack on mobile */
+  .room-stage{ grid-template-columns: 1fr; } /* stacked mobile */
 }
 
 .video-box{
@@ -41,7 +82,7 @@ body{ background:var(--bg); color:var(--text); font-family:'JetBrains Mono', mon
 /* Connected glow */
 .video-box.connected{ box-shadow:0 0 0 1.5px var(--brand); transition: box-shadow .25s; }
 
-/* ===== On-video overlays ===== */
+/* On-video overlays */
 .v-label{
   position:absolute; top:10px; left:10px; z-index:2;
   font-size:12px; color:rgba(255,255,255,.75);
@@ -59,15 +100,15 @@ body{ background:var(--bg); color:var(--text); font-family:'JetBrains Mono', mon
 .v-action.swap{ top:10px; right:56px; }
 .v-action:hover{ background:rgba(0,245,255,.08); box-shadow:0 0 0 1px var(--brand); }
 
-/* ===== Fullscreen modes (tile) ===== */
+/* Tile fullscreen (per-video) */
 body.fullscreen-you .room-stage,
 body.fullscreen-them .room-stage{
-  grid-template-columns: 1fr; /* single tile view in fullscreen */
+  grid-template-columns: 1fr;
 }
 body.fullscreen-you #themBox,
 body.fullscreen-them #youBox{ display:none; }
 
-/* ===== Floating controls ===== */
+/* Floating controls */
 .controls{
   position:fixed; bottom:14px; right:14px; z-index:30;
   display:flex; gap:8px; opacity:.85; transition:opacity .2s;
@@ -79,7 +120,7 @@ body.fullscreen-them #youBox{ display:none; }
 }
 .controls button:hover{ background:rgba(0,245,255,.08); box-shadow:0 0 0 1px var(--brand); }
 
-/* ===== Host approval popup ===== */
+/* Approval popup */
 .popup{
   position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); z-index:40;
   background:var(--panel); color:var(--text); border:1px solid var(--line);

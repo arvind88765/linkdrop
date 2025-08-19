@@ -2,59 +2,46 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>LinkDrop • Room</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#000000" />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/style.css" />
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-  <meta name="theme-color" content="#0b0f14" />
 </head>
-<body class="page-room">
-  <header class="topbar">
-    <div class="brand">
-      <div class="logo">🛡️</div>
-      <span>LinkDrop</span>
+<body>
+  <div class="status-bar">
+    <div id="roomLabel">Room — ••••••</div>
+    <div class="status-actions">
+      <button class="ghost" onclick="copyLink()">Copy Link</button>
     </div>
+  </div>
 
-    <div class="room-meta">
-      <span class="badge" id="roomCodeBadge">ROOM — ••••••</span>
-      <button class="ghost-btn" onclick="copyLink()" title="Copy room link">Copy Link</button>
+  <div class="video-grid">
+    <div class="video-box" id="youBox">
+      <div class="label">You</div>
+      <video id="localVideo" autoplay playsinline muted></video>
+      <button class="expand-btn" onclick="fullscreenYou()" title="Fullscreen you">⤢</button>
     </div>
-  </header>
+    <div class="video-box" id="themBox">
+      <div class="label">Peer</div>
+      <video id="remoteVideo" autoplay playsinline></video>
+      <button class="expand-btn" onclick="fullscreenThem()" title="Fullscreen peer">⤢</button>
+    </div>
+  </div>
 
-  <div id="status" class="status status--info">Starting…</div>
-
-  <main class="stage">
-    <section class="grid">
-      <div class="tile">
-        <div class="tile__label">You</div>
-        <video id="localVideo" autoplay playsinline muted></video>
-      </div>
-
-      <div class="tile">
-        <div class="tile__label">Peer</div>
-        <video id="remoteVideo" autoplay playsinline></video>
-      </div>
-    </section>
-  </main>
-
-  <!-- Incoming request popup (host only) -->
-  <dialog id="approvalPopup" class="dialog">
-    <form method="dialog" class="dialog__surface">
-      <h3>Incoming join request</h3>
-      <p>Someone wants to join this room. Allow?</p>
-      <div class="dialog__actions">
-        <button id="rejectBtn" class="btn">Reject</button>
-        <button id="acceptBtn" class="btn btn-primary">Accept</button>
-      </div>
-    </form>
-  </dialog>
+  <!-- Host approval popup -->
+  <div id="approvalPopup" class="popup" style="display:none;">
+    <p>Incoming join request — allow?</p>
+    <button id="acceptBtn">Accept</button>
+    <button id="rejectBtn">Reject</button>
+  </div>
 
   <!-- Floating controls -->
-  <div class="controls" id="controls" role="toolbar" aria-label="Call controls">
-    <button class="control" id="btnAudio" onclick="toggleAudio()" title="Toggle microphone">🎙️</button>
-    <button class="control" id="btnVideo" onclick="toggleVideo()" title="Toggle camera">📷</button>
-    <button class="control" onclick="fullscreen()" title="Fullscreen">⤢</button>
-    <button class="control" onclick="newRoom()" title="New room">↻</button>
+  <div class="controls" role="toolbar" aria-label="Call controls">
+    <button id="btnAudio" title="Toggle mic" onclick="toggleAudio()">🎙️</button>
+    <button id="btnVideo" title="Toggle camera" onclick="toggleVideo()">📷</button>
+    <button title="Copy room link" onclick="copyLink()">🔗</button>
+    <button title="New room" onclick="newRoom()">↻</button>
   </div>
 
   <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>

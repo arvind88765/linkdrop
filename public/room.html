@@ -8,26 +8,37 @@
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/style.css" />
 </head>
-<body>
+<body class="page-room">
+  <!-- Top status / actions -->
   <div class="status-bar">
     <div id="roomLabel">Room — ••••••</div>
     <div class="status-actions">
-      <button class="ghost" onclick="copyLink()">Copy Link</button>
+      <button class="ghost" onclick="copyLink()" title="Copy link">🔗 Copy</button>
+      <button class="ghost" onclick="newRoom()" title="New room">↻ New</button>
     </div>
   </div>
 
-  <div class="video-grid">
-    <div class="video-box" id="youBox">
-      <div class="label">You</div>
+  <!-- Side-by-side on desktop / stacked on mobile -->
+  <main class="room-stage">
+    <!-- YOU -->
+    <section class="video-box" id="youBox">
       <video id="localVideo" autoplay playsinline muted></video>
-      <button class="expand-btn" onclick="fullscreenYou()" title="Fullscreen you">⤢</button>
-    </div>
-    <div class="video-box" id="themBox">
-      <div class="label">Peer</div>
+
+      <!-- overlays -->
+      <div class="v-label">You</div>
+      <button class="v-action expand" title="Fullscreen you" data-target="you">⤢</button>
+      <button class="v-action swap" title="Swap videos" data-action="swap">⇆</button>
+    </section>
+
+    <!-- PEER -->
+    <section class="video-box" id="themBox">
       <video id="remoteVideo" autoplay playsinline></video>
-      <button class="expand-btn" onclick="fullscreenThem()" title="Fullscreen peer">⤢</button>
-    </div>
-  </div>
+
+      <!-- overlays -->
+      <div class="v-label">Peer</div>
+      <button class="v-action expand" title="Fullscreen peer" data-target="them">⤢</button>
+    </section>
+  </main>
 
   <!-- Host approval popup -->
   <div id="approvalPopup" class="popup" style="display:none;">
@@ -36,12 +47,12 @@
     <button id="rejectBtn">Reject</button>
   </div>
 
-  <!-- Floating controls -->
+  <!-- Floating call controls -->
   <div class="controls" role="toolbar" aria-label="Call controls">
     <button id="btnAudio" title="Toggle mic" onclick="toggleAudio()">🎙️</button>
     <button id="btnVideo" title="Toggle camera" onclick="toggleVideo()">📷</button>
-    <button title="Copy room link" onclick="copyLink()">🔗</button>
-    <button title="New room" onclick="newRoom()">↻</button>
+    <button id="btnPIP"   title="Picture-in-Picture" onclick="pip()">▣</button>
+    <button id="btnFS"    title="Fullscreen page" onclick="fullscreenPage()">⤢</button>
   </div>
 
   <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>

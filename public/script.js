@@ -73,16 +73,13 @@ window.addEventListener('load', async () => {
     await startRoom();
   }
 
-  // Expand buttons on the video itself
   document.querySelectorAll('.v-action.expand').forEach(btn=>{
     btn.addEventListener('click', () => enterTileFullscreen(btn.dataset.target));
   });
 
-  // Swap tiles
   const swapBtn = document.querySelector('.v-action.swap');
   if (swapBtn) swapBtn.addEventListener('click', swapVideos);
 
-  // Double-click video to toggle tile fullscreen
   [localVideo, remoteVideo].forEach((v)=>{
     v?.addEventListener('dblclick', ()=>{
       if (document.body.classList.contains('fullscreen-you') || document.body.classList.contains('fullscreen-them')) {
@@ -93,13 +90,11 @@ window.addEventListener('load', async () => {
     });
   });
 
-  // ESC exits tile fullscreen
   document.addEventListener('keydown', (e)=>{ if (e.key === 'Escape') exitTileFullscreen(); });
 });
 
 // ===== Signaling & WebRTC (backend unchanged) =====
 async function startRoom(){
-  // connect to your deployed Socket.IO server
   socket = io('https://linkdrop-production.up.railway.app');
 
   socket.on('connect', async () => {
@@ -119,7 +114,6 @@ async function startRoom(){
     toast('Signaling failed');
   });
 
-  // host approval flow
   socket.on('request-join', () => {
     isHost = true;
     if (approvalPopup) approvalPopup.style.display = 'block';
@@ -128,9 +122,7 @@ async function startRoom(){
   socket.on('accepted', () => { toast('Accepted'); });
   socket.on('rejected', () => { toast('Rejected'); setTimeout(()=> location.href='/', 900); });
 
-  // signaling
   socket.on('offer', async (desc) => {
-    // guest receives offer
     pc = createPeer();
     localStream.getTracks().forEach(t => pc.addTrack(t, localStream));
     await pc.setRemoteDescription(new RTCSessionDescription(desc));
@@ -140,7 +132,6 @@ async function startRoom(){
   });
 
   socket.on('answer', async (desc) => {
-    // host receives answer
     if (pc) await pc.setRemoteDescription(new RTCSessionDescription(desc));
   });
 
@@ -148,11 +139,10 @@ async function startRoom(){
     try { await pc?.addIceCandidate(new RTCIceCandidate(candidate)); } catch (err) { console.error('ICE add error', err); }
   });
 
-  // approval buttons
   if (acceptBtn) acceptBtn.onclick = () => {
     socket.emit('accept', roomCode);
     approvalPopup.style.display = 'none';
-    createAndSendOffer(); // host creates offer
+    createAndSendOffer();
   };
   if (rejectBtn) rejectBtn.onclick = () => {
     socket.emit('reject', roomCode);

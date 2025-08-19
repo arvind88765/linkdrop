@@ -5,9 +5,8 @@
   <title>LinkDrop — Private P2P Rooms</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#000000" />
+  <link rel="icon" type="image/png" href="favicon.png">
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
-    <link rel="icon" type="image/png" href="favicon.png">
-
   <link rel="stylesheet" href="/style.css" />
 </head>
 <body class="page-home">
@@ -21,7 +20,7 @@
   <main class="container hero-wrap">
     <div class="hero">
       <h1 class="grad-text">Share instantly. Securely.</h1>
-      <p class="sub">Private P2P rooms for video & files. No logins, no servers for media — device to device.</p>
+      <p class="sub">With <b>LinkDrop</b>, creating private video rooms is effortless. Just drop a link, share it with friends, and connect instantly — simple, fast, and fun.</p>
       <div class="buttons">
         <button class="btn-primary" onclick="createRoomFlow()" aria-label="Create a new room">➕ Create Room</button>
         <button class="btn" onclick="openJoin()" aria-label="Join an existing room">🔑 Join Room</button>
@@ -29,22 +28,30 @@
       <p class="small">Tip: Press <b>C</b> to create, <b>J</b> to join</p>
     </div>
 
-    <!-- Feature cards -->
+    <!-- Features (4 cards) -->
     <section class="features">
       <article class="feature">
-        <div class="f-ico">🔒</div>
-        <h3>Secure</h3>
-        <p>WebRTC peer-to-peer, your media doesn’t touch our servers.</p>
+        <div class="f-ico">🆓</div>
+        <h3>Free & Unlimited</h3>
+        <p>No hidden costs. Unlimited rooms, unlimited minutes.</p>
       </article>
+
       <article class="feature">
         <div class="f-ico">⚡</div>
         <h3>Instant</h3>
         <p>No signup. Create a code, share, and connect.</p>
       </article>
+
       <article class="feature">
-        <div class="f-ico">📱</div>
-        <h3>Device-to-Device</h3>
-        <p>Optimized for phone and desktop with smooth handoff.</p>
+        <div class="f-ico">🔒</div>
+        <h3>End-to-End Privacy</h3>
+        <p>Peer-to-peer calls — your media never touches our servers.</p>
+      </article>
+
+      <article class="feature">
+        <div class="f-ico">🚫</div>
+        <h3>No Tracking & History</h3>
+        <p>No tracking, no call history, no analytics cookies. Period.</p>
       </article>
     </section>
   </main>
@@ -91,14 +98,14 @@
   <div id="aboutModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="aboutTitle">
     <div class="modal-content">
       <h2 id="aboutTitle">About</h2>
-      <p>With LinkDrop, creating private video rooms is effortless. Just drop a link, share it with friends, and connect instantly—simple, fast, and fun..</p>
+      <p>Socket.IO for signaling, WebRTC for P2P media. Backend stays exactly as you deployed.</p>
       <div class="modal-buttons">
         <button class="primary" onclick="closeAbout()">Close</button>
       </div>
     </div>
   </div>
 
-  <!-- Landing page script (kept inline so room logic stays in /script.js) -->
+  <!-- Landing-only JS -->
   <script>
     // Keyboard shortcuts
     document.addEventListener('keydown', (e) => {

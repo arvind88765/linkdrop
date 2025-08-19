@@ -2,117 +2,83 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>LinkDrop — Private P2P Rooms</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#000000" />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/style.css" />
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-  <meta name="theme-color" content="#0b0f14" />
 </head>
-<body class="page-home">
-  <header class="topbar">
-    <div class="brand">
-      <div class="logo">🔗</div>
-      <span>LinkDrop</span>
+<body>
+  <div class="status-bar">
+    <div>LinkDrop</div>
+    <button class="ghost" onclick="openAbout()">About</button>
+  </div>
+
+  <main class="container">
+    <h1>Share privately, connect instantly.</h1>
+    <p>Spin up a secure P2P room in seconds. No logins. Your media flows device-to-device.</p>
+    <div class="buttons">
+      <button onclick="createRoom()" aria-label="Create a new room">Create Room</button>
+      <button onclick="openJoin()" aria-label="Join an existing room">Join Room</button>
     </div>
-    <button class="ghost-btn" onclick="openAbout()">About</button>
-  </header>
-
-  <main class="hero">
-    <div class="hero__copy">
-      <h1>Share privately, connect instantly.</h1>
-      <p>Spin up a secure P2P room in seconds. No sign-ups. Your media flows device-to-device.</p>
-
-      <div class="cta-row">
-        <button class="btn btn-primary" onclick="createRoom()" aria-label="Create a new room">Create Room</button>
-        <button class="btn" onclick="openJoin()" aria-label="Join a room by code">Join Room</button>
-      </div>
-
-      <div class="helper">
-        <span class="kbd">Tip</span> Press <span class="kbd">C</span> to create, <span class="kbd">J</span> to join.
-      </div>
-    </div>
-
-    <div class="hero__card">
-      <div class="card">
-        <h3>How it works</h3>
-        <ol>
-          <li>Create a room (auto-generates a 6-char code).</li>
-          <li>Share the link/code with your peer.</li>
-          <li>Approve the join request and chat P2P.</li>
-        </ol>
-        <div class="muted">Powered by WebRTC & Socket.IO signaling.</div>
-      </div>
-    </div>
+    <p class="small">Tip: Press <b>C</b> to create, <b>J</b> to join</p>
   </main>
 
   <!-- Join Modal -->
-  <dialog id="joinDialog" class="dialog">
-    <form method="dialog" class="dialog__surface" onsubmit="return false;">
-      <h3>Join a Room</h3>
-      <label class="field">
-        <span>Room code</span>
-        <input id="joinCode" type="text" inputmode="latin-prose" autocomplete="one-time-code"
-               placeholder="e.g. A1B2C3" maxlength="6" aria-label="Enter 6-character room code" />
-      </label>
-      <div class="dialog__actions">
-        <button class="btn" onclick="closeJoin()">Cancel</button>
-        <button class="btn btn-primary" onclick="submitJoin()">Join</button>
+  <div id="joinModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="joinTitle">
+    <div class="modal-content">
+      <h2 id="joinTitle">Join a Room</h2>
+      <div class="field">
+        <input id="joinCode" type="text" inputmode="latin-prose" maxlength="6" placeholder="Enter 6-char code (e.g. A1B2C3)" aria-label="Room code">
       </div>
-    </form>
-  </dialog>
+      <div class="modal-buttons">
+        <button onclick="closeJoin()">Cancel</button>
+        <button class="primary" onclick="submitJoin()">Join</button>
+      </div>
+      <div class="small">Only A–Z and 0–9 are allowed.</div>
+    </div>
+  </div>
 
   <!-- About Modal -->
-  <dialog id="aboutDialog" class="dialog">
-    <form method="dialog" class="dialog__surface">
-      <h3>About LinkDrop</h3>
-      <p>Peer-to-peer rooms with a single shareable link. No accounts, no fuss.</p>
-      <div class="dialog__actions">
-        <button class="btn btn-primary" onclick="closeAbout()">Close</button>
+  <div id="aboutModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="aboutTitle">
+    <div class="modal-content">
+      <h2 id="aboutTitle">About</h2>
+      <p>Peer-to-peer rooms. Socket.IO for signaling, WebRTC for media. Your backend remains unchanged.</p>
+      <div class="modal-buttons">
+        <button class="primary" onclick="closeAbout()">Close</button>
       </div>
-    </form>
-  </dialog>
+    </div>
+  </div>
 
   <script>
     // Keyboard shortcuts
     document.addEventListener('keydown', (e) => {
-      if (e.key.toLowerCase() === 'c') createRoom();
-      if (e.key.toLowerCase() === 'j') openJoin();
+      const k = e.key.toLowerCase();
+      if (k === 'c') createRoom();
+      if (k === 'j') openJoin();
     });
 
-    function randomCode() {
-      return Math.random().toString(36).substr(2, 6).toUpperCase();
+    function randomCode(){
+      return Math.random().toString(36).substr(2,6).toUpperCase();
     }
-
-    function createRoom() {
+    function createRoom(){
       const code = randomCode();
-      window.location.href = `/room/${code}`;
+      location.href = `/room/${code}`;
     }
 
-    const joinDialog = document.getElementById('joinDialog');
-    const aboutDialog = document.getElementById('aboutDialog');
-
-    function openJoin() {
-      joinDialog.showModal();
-      const input = document.getElementById('joinCode');
-      input.value = '';
-      setTimeout(() => input.focus(), 0);
-    }
-    function closeJoin() { joinDialog.close(); }
-
-    function submitJoin() {
-      const input = document.getElementById('joinCode');
-      const code = (input.value || '').trim().toUpperCase();
-      if (/^[A-Z0-9]{6}$/.test(code)) {
-        window.location.href = `/room/${code}`;
-      } else {
-        input.setCustomValidity('Please enter a valid 6-character code (A-Z, 0-9).');
-        input.reportValidity();
-        setTimeout(() => input.setCustomValidity(''), 1200);
-      }
+    const joinModal = document.getElementById('joinModal');
+    const joinInput = document.getElementById('joinCode');
+    function openJoin(){ joinModal.style.display='flex'; setTimeout(()=>joinInput.focus(),0); }
+    function closeJoin(){ joinModal.style.display='none'; }
+    function submitJoin(){
+      const code = (joinInput.value||'').trim().toUpperCase();
+      if(/^[A-Z0-9]{6}$/.test(code)) location.href = `/room/${code}`;
+      else { joinInput.value=''; joinInput.placeholder='Invalid code — try like A1B2C3'; }
     }
 
-    function openAbout(){ aboutDialog.showModal(); }
-    function closeAbout(){ aboutDialog.close(); }
+    const aboutModal = document.getElementById('aboutModal');
+    function openAbout(){ aboutModal.style.display='flex'; }
+    function closeAbout(){ aboutModal.style.display='none'; }
   </script>
 </body>
 </html>

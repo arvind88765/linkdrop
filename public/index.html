@@ -9,19 +9,42 @@
   <link rel="stylesheet" href="/style.css" />
 </head>
 <body class="page-home">
+  <!-- Topbar -->
   <div class="status-bar">
-    <div>LinkDrop</div>
+    <div class="brand">LinkDrop</div>
     <button class="ghost" onclick="openAbout()">About</button>
   </div>
 
-  <main class="container">
-    <h1>Share privately, connect instantly.</h1>
-    <p>Spin up a secure P2P room in seconds. No logins. Your media flows device-to-device.</p>
-    <div class="buttons">
-      <button onclick="createRoomFlow()" aria-label="Create a new room">Create Room</button>
-      <button onclick="openJoin()" aria-label="Join an existing room">Join Room</button>
+  <!-- Hero -->
+  <main class="container hero-wrap">
+    <div class="hero">
+      <h1 class="grad-text">Share instantly. Securely.</h1>
+      <p class="sub">Private P2P rooms for video & files. No logins, no servers for media — device to device.</p>
+      <div class="buttons">
+        <button class="btn-primary" onclick="createRoomFlow()" aria-label="Create a new room">➕ Create Room</button>
+        <button class="btn" onclick="openJoin()" aria-label="Join an existing room">🔑 Join Room</button>
+      </div>
+      <p class="small">Tip: Press <b>C</b> to create, <b>J</b> to join</p>
     </div>
-    <p class="small">Tip: Press <b>C</b> to create, <b>J</b> to join</p>
+
+    <!-- Feature cards -->
+    <section class="features">
+      <article class="feature">
+        <div class="f-ico">🔒</div>
+        <h3>Secure</h3>
+        <p>WebRTC peer-to-peer, your media doesn’t touch our servers.</p>
+      </article>
+      <article class="feature">
+        <div class="f-ico">⚡</div>
+        <h3>Instant</h3>
+        <p>No signup. Create a code, share, and connect.</p>
+      </article>
+      <article class="feature">
+        <div class="f-ico">📱</div>
+        <h3>Device-to-Device</h3>
+        <p>Optimized for phone and desktop with smooth handoff.</p>
+      </article>
+    </section>
   </main>
 
   <!-- Join Modal -->
@@ -40,27 +63,25 @@
     </div>
   </div>
 
-  <!-- Created Room Modal (NEW) -->
+  <!-- Created Room Modal -->
   <div id="createdModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="createdTitle">
     <div class="modal-content">
       <h2 id="createdTitle">Room Created</h2>
       <div class="small">Share this code or link with your peer</div>
 
-      <div class="code" id="createdCode" style="font-size:28px; margin:16px 0; letter-spacing:2px; color:#00f5ff;">
-        ••••••
-      </div>
+      <div class="code" id="createdCode">••••••</div>
 
-      <div class="field" style="margin-top:6px;">
+      <div class="field">
         <input id="createdLink" type="text" readonly>
       </div>
 
-      <div class="modal-buttons" style="margin-top:14px;">
+      <div class="modal-buttons">
         <button onclick="copyCreatedLink()">Copy Link</button>
         <button onclick="shareCreatedLink()">Share</button>
         <button class="primary" onclick="enterCreatedRoom()">Enter Room</button>
       </div>
 
-      <div class="small" style="margin-top:10px;">You can always share the link after entering, too.</div>
+      <div class="small">You can always share the link after entering, too.</div>
     </div>
   </div>
 
@@ -68,13 +89,14 @@
   <div id="aboutModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="aboutTitle">
     <div class="modal-content">
       <h2 id="aboutTitle">About</h2>
-      <p>Peer-to-peer rooms. Socket.IO for signaling, WebRTC for media. Your backend remains unchanged.</p>
+      <p>Socket.IO for signaling, WebRTC for P2P media. Backend stays exactly as you deployed.</p>
       <div class="modal-buttons">
         <button class="primary" onclick="closeAbout()">Close</button>
       </div>
     </div>
   </div>
 
+  <!-- Landing page script (kept inline so room logic stays in /script.js) -->
   <script>
     // Keyboard shortcuts
     document.addEventListener('keydown', (e) => {
@@ -83,11 +105,11 @@
       if (k === 'j') openJoin();
     });
 
-    // ---------- Helpers ----------
+    // Helpers
     function randomCode(){ return Math.random().toString(36).substr(2,6).toUpperCase(); }
     function roomUrl(code){ return `${location.origin}/room/${code}`; }
 
-    // ---------- Join flow ----------
+    // Join flow
     const joinModal = document.getElementById('joinModal');
     const joinInput = document.getElementById('joinCode');
     function openJoin(){ joinModal.style.display='flex'; setTimeout(()=>joinInput.focus(),0); }
@@ -98,24 +120,18 @@
       else { joinInput.value=''; joinInput.placeholder='Invalid code — try A1B2C3'; }
     }
 
-    // ---------- Created room flow (NEW) ----------
+    // Created room flow
     let lastCreatedCode = null;
     const createdModal = document.getElementById('createdModal');
     const createdCodeEl = document.getElementById('createdCode');
     const createdLinkEl = document.getElementById('createdLink');
 
     function createRoomFlow(){
-      // generate code but don't navigate yet
       lastCreatedCode = randomCode();
       const link = roomUrl(lastCreatedCode);
-
       createdCodeEl.textContent = lastCreatedCode;
       createdLinkEl.value = link;
-
-      // show modal
       createdModal.style.display = 'flex';
-
-      // select link for easy copy
       setTimeout(()=> createdLinkEl.select(), 0);
     }
 
@@ -128,17 +144,16 @@
           await navigator.clipboard.writeText(link);
           alert('Link copied to clipboard');
         }
-      }catch(e){ /* user cancelled share or not supported */ }
+      }catch(e){ /* ignore cancel */ }
     }
 
     async function copyCreatedLink(){
       try{
         await navigator.clipboard.writeText(createdLinkEl.value);
-        createdLinkEl.blur();
         alert('Link copied to clipboard');
       }catch(e){
         createdLinkEl.select();
-        document.execCommand('copy'); // legacy fallback
+        document.execCommand('copy');
         alert('Link copied (fallback)');
       }
     }
@@ -148,7 +163,7 @@
       location.href = `/room/${lastCreatedCode}`;
     }
 
-    // ---------- About ----------
+    // About
     const aboutModal = document.getElementById('aboutModal');
     function openAbout(){ aboutModal.style.display='flex'; }
     function closeAbout(){ aboutModal.style.display='none'; }

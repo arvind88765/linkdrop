@@ -9,7 +9,6 @@
   <link rel="stylesheet" href="/style.css" />
 </head>
 <body class="page-room">
-  <!-- Top status / actions -->
   <div class="status-bar">
     <div id="roomLabel">Room — ••••••</div>
     <div class="status-actions">
@@ -18,13 +17,11 @@
     </div>
   </div>
 
-  <!-- Side-by-side on desktop / stacked on mobile -->
+  <!-- Side-by-side desktop / stacked mobile -->
   <main class="room-stage">
     <!-- YOU -->
     <section class="video-box" id="youBox">
       <video id="localVideo" autoplay playsinline muted></video>
-
-      <!-- overlays -->
       <div class="v-label">You</div>
       <button class="v-action expand" title="Fullscreen you" data-target="you">⤢</button>
       <button class="v-action swap" title="Swap videos" data-action="swap">⇆</button>
@@ -33,21 +30,19 @@
     <!-- PEER -->
     <section class="video-box" id="themBox">
       <video id="remoteVideo" autoplay playsinline></video>
-
-      <!-- overlays -->
       <div class="v-label">Peer</div>
       <button class="v-action expand" title="Fullscreen peer" data-target="them">⤢</button>
     </section>
   </main>
 
-  <!-- Host approval popup -->
+  <!-- Host approval -->
   <div id="approvalPopup" class="popup" style="display:none;">
     <p>Incoming join request — allow?</p>
     <button id="acceptBtn">Accept</button>
     <button id="rejectBtn">Reject</button>
   </div>
 
-  <!-- Floating call controls -->
+  <!-- Call controls -->
   <div class="controls" role="toolbar" aria-label="Call controls">
     <button id="btnAudio" title="Toggle mic" onclick="toggleAudio()">🎙️</button>
     <button id="btnVideo" title="Toggle camera" onclick="toggleVideo()">📷</button>

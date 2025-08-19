@@ -53,7 +53,6 @@ async function pip(){
   try { await v.requestPictureInPicture(); } catch {}
 }
 function swapVideos(){
-  // swap order of tiles visually
   const parent = youBox.parentElement;
   if (youBox.nextElementSibling === themBox) parent.insertBefore(themBox, youBox);
   else parent.insertBefore(youBox, themBox);
@@ -100,6 +99,7 @@ window.addEventListener('load', async () => {
 
 // ===== Signaling & WebRTC (backend unchanged) =====
 async function startRoom(){
+  // connect to your deployed Socket.IO server
   socket = io('https://linkdrop-production.up.railway.app');
 
   socket.on('connect', async () => {
@@ -119,7 +119,7 @@ async function startRoom(){
     toast('Signaling failed');
   });
 
-  // host flow
+  // host approval flow
   socket.on('request-join', () => {
     isHost = true;
     if (approvalPopup) approvalPopup.style.display = 'block';
@@ -130,7 +130,7 @@ async function startRoom(){
 
   // signaling
   socket.on('offer', async (desc) => {
-    // guest
+    // guest receives offer
     pc = createPeer();
     localStream.getTracks().forEach(t => pc.addTrack(t, localStream));
     await pc.setRemoteDescription(new RTCSessionDescription(desc));
@@ -140,7 +140,7 @@ async function startRoom(){
   });
 
   socket.on('answer', async (desc) => {
-    // host
+    // host receives answer
     if (pc) await pc.setRemoteDescription(new RTCSessionDescription(desc));
   });
 

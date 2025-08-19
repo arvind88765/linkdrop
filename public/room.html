@@ -5,9 +5,8 @@
   <title>LinkDrop • Room</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#000000" />
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="icon" type="image/png" href="favicon.png">
-
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/style.css" />
 </head>
 <body class="page-room">
@@ -19,9 +18,7 @@
     </div>
   </div>
 
-  <!-- Side-by-side desktop / stacked mobile -->
   <main class="room-stage">
-    <!-- YOU -->
     <section class="video-box" id="youBox">
       <video id="localVideo" autoplay playsinline muted></video>
       <div class="v-label">You</div>
@@ -29,7 +26,6 @@
       <button class="v-action swap" title="Swap videos" data-action="swap">⇆</button>
     </section>
 
-    <!-- PEER -->
     <section class="video-box" id="themBox">
       <video id="remoteVideo" autoplay playsinline></video>
       <div class="v-label">Peer</div>
@@ -37,14 +33,12 @@
     </section>
   </main>
 
-  <!-- Host approval popup -->
   <div id="approvalPopup" class="popup" style="display:none;">
     <p>Incoming join request — allow?</p>
     <button id="acceptBtn">Accept</button>
     <button id="rejectBtn">Reject</button>
   </div>
 
-  <!-- Floating call controls -->
   <div class="controls" role="toolbar" aria-label="Call controls">
     <button id="btnAudio" title="Toggle mic" onclick="toggleAudio()">🎙️</button>
     <button id="btnVideo" title="Toggle camera" onclick="toggleVideo()">📷</button>

@@ -7,9 +7,9 @@
 html,body{ height:100%; }
 body{
   background:
-    radial-gradient(800px 400px at 15% 15%, rgba(0,245,255,.06), transparent),
-    radial-gradient(900px 500px at 85% 85%, rgba(0,140,255,.05), transparent),
-    var(--bg);
+    radial-gradient(700px 380px at 18% 18%, rgba(0,245,255,.045), transparent),
+    radial-gradient(780px 420px at 82% 85%, rgba(0,140,255,.04), transparent),
+    #020303;
   color:var(--text);
   font-family:'JetBrains Mono', monospace;
 }
@@ -26,52 +26,56 @@ body{
   padding:6px 10px; border-radius:8px; cursor:pointer;
 }
 .status-bar .ghost:hover{ background:var(--brand-soft); }
-.brand{ font-weight:700; letter-spacing:.6px; }
+.brand{ font-weight:700; letter-spacing:.4px; }
 
 /* ===== Landing (Hero + Features) ===== */
-.page-home .container{ min-height:100dvh; padding:80px 16px 40px; }
-.hero-wrap{ display:grid; gap:32px; max-width:1100px; margin:0 auto; }
-.hero{ text-align:center; padding-top:40px; }
+.page-home .container{ min-height:100dvh; padding:60px 16px 40px; }
+.hero-wrap{ display:grid; gap:18px; max-width:1040px; margin:0 auto; }
+.hero{ text-align:center; padding-top:32px; }
+
+/* tighter hero for desktop */
 .grad-text{
-  font-size:clamp(28px, 4.6vw, 56px);
+  font-size:clamp(26px, 3.6vw, 42px);
   background:linear-gradient(90deg, #00f5ff, #41e2ff, #00ffd1);
   -webkit-background-clip:text; background-clip:text; color:transparent;
-  letter-spacing:.6px; margin-bottom:10px;
+  letter-spacing:.2px; margin-bottom:8px;
 }
-.sub{ color:var(--muted); margin-bottom:22px; line-height:1.6; }
-.buttons{ display:flex; gap:14px; justify-content:center; flex-wrap:wrap; }
+.sub{ color:var(--muted); margin-bottom:16px; line-height:1.5; max-width:760px; margin-inline:auto; }
+.buttons{ display:flex; gap:12px; justify-content:center; flex-wrap:wrap; }
 .btn, .btn-primary{
-  padding:12px 18px; border-radius:10px; cursor:pointer; font-size:14px; letter-spacing:.6px;
-  border:1px solid var(--line); background:rgba(16,16,16,.65); color:#fff; transition:.25s;
+  padding:10px 16px; border-radius:10px; cursor:pointer; font-size:14px; letter-spacing:.4px;
+  border:1px solid var(--line); background:rgba(16,16,16,.65); color:#fff; transition:.2s;
 }
 .btn:hover{ background:var(--brand-soft); box-shadow:0 0 0 1px var(--brand); }
 .btn-primary{
   background:linear-gradient(180deg, #00f5ff, #00d1c7); color:#001014;
   border:1px solid rgba(0,0,0,.25); font-weight:700;
 }
-.small{ margin-top:8px; color:var(--muted); font-size:12px; }
+.small{ margin-top:6px; color:var(--muted); font-size:12px; }
 
-/* === Feature cards (compact on desktop) === */
+/* === Feature cards (compact & consistent height on desktop) === */
 .features{
-  display:grid; gap:14px; grid-template-columns: repeat(3, 1fr);
-  margin:24px auto 0; max-width:900px; align-items:start;
+  display:grid; gap:12px; grid-template-columns: repeat(3, 1fr);
+  margin:18px auto 0; max-width:1000px; align-items:start;
 }
 @media (max-width: 900px){ .features{ grid-template-columns:1fr; } }
 
 .feature{
-  background:var(--panel); border:1px solid var(--line); border-radius:12px;
-  padding:14px; text-align:center; display:grid; gap:8px; align-content:start;
+  background:var(--panel); border:1px solid var(--line); border-radius:10px;
+  padding:12px; text-align:center; display:grid; gap:6px;
+  min-height:auto; /* make sure it doesn't stretch */
 }
-.f-ico{ font-size:18px; line-height:1; }
-.feature h3{ margin:2px 0 2px; font-size:14px; }
-.feature p{ color:var(--muted); font-size:12px; line-height:1.45; }
+.f-ico{ font-size:16px; line-height:1; }
+.feature h3{ margin:2px 0; font-size:13.5px; }
+.feature p{ color:var(--muted); font-size:12px; line-height:1.4; }
 
-/* Tighten further on wider desktops */
-@media (min-width: 1100px){
-  .feature{ padding:12px; border-radius:10px; }
+/* keep cards tight on large screens */
+@media (min-width: 1200px){
+  .features{ max-width:980px; }
+  .feature{ padding:10px; }
   .feature h3{ font-size:13px; }
   .feature p{ font-size:11.5px; }
-  .f-ico{ font-size:16px; }
+  .f-ico{ font-size:15px; }
 }
 
 /* ===== Modals ===== */
@@ -99,7 +103,7 @@ body{
 }
 .modal-buttons .primary{ background:var(--brand); color:#000; border-color:transparent; }
 .code{
-  font-size:28px; margin:16px 0; letter-spacing:2px; color:var(--brand); user-select:all;
+  font-size:26px; margin:14px 0; letter-spacing:2px; color:var(--brand); user-select:all;
 }
 
 /* ===== Room Layout ===== */
@@ -126,7 +130,7 @@ body{
   position:absolute; top:10px; left:10px; z-index:2;
   font-size:12px; color:rgba(255,255,255,.75);
   background:rgba(0,0,0,.55); border:1px solid var(--line);
-  padding:4px 8px; border-radius:8px; letter-spacing:.6px;
+  padding:4px 8px; border-radius:8px; letter-spacing:.4px;
 }
 .v-action{
   position:absolute; z-index:3; width:40px; height:40px;

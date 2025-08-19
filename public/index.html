@@ -18,7 +18,7 @@
     <h1>Share privately, connect instantly.</h1>
     <p>Spin up a secure P2P room in seconds. No logins. Your media flows device-to-device.</p>
     <div class="buttons">
-      <button onclick="createRoom()" aria-label="Create a new room">Create Room</button>
+      <button onclick="createRoomFlow()" aria-label="Create a new room">Create Room</button>
       <button onclick="openJoin()" aria-label="Join an existing room">Join Room</button>
     </div>
     <p class="small">Tip: Press <b>C</b> to create, <b>J</b> to join</p>
@@ -40,6 +40,30 @@
     </div>
   </div>
 
+  <!-- Created Room Modal (NEW) -->
+  <div id="createdModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="createdTitle">
+    <div class="modal-content">
+      <h2 id="createdTitle">Room Created</h2>
+      <div class="small">Share this code or link with your peer</div>
+
+      <div class="code" id="createdCode" style="font-size:28px; margin:16px 0; letter-spacing:2px; color:#00f5ff;">
+        ••••••
+      </div>
+
+      <div class="field" style="margin-top:6px;">
+        <input id="createdLink" type="text" readonly>
+      </div>
+
+      <div class="modal-buttons" style="margin-top:14px;">
+        <button onclick="copyCreatedLink()">Copy Link</button>
+        <button onclick="shareCreatedLink()">Share</button>
+        <button class="primary" onclick="enterCreatedRoom()">Enter Room</button>
+      </div>
+
+      <div class="small" style="margin-top:10px;">You can always share the link after entering, too.</div>
+    </div>
+  </div>
+
   <!-- About Modal -->
   <div id="aboutModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="aboutTitle">
     <div class="modal-content">
@@ -55,13 +79,15 @@
     // Keyboard shortcuts
     document.addEventListener('keydown', (e) => {
       const k = e.key.toLowerCase();
-      if (k === 'c') createRoom();
+      if (k === 'c') createRoomFlow();
       if (k === 'j') openJoin();
     });
 
+    // ---------- Helpers ----------
     function randomCode(){ return Math.random().toString(36).substr(2,6).toUpperCase(); }
-    function createRoom(){ location.href = `/room/${randomCode()}`; }
+    function roomUrl(code){ return `${location.origin}/room/${code}`; }
 
+    // ---------- Join flow ----------
     const joinModal = document.getElementById('joinModal');
     const joinInput = document.getElementById('joinCode');
     function openJoin(){ joinModal.style.display='flex'; setTimeout(()=>joinInput.focus(),0); }
@@ -72,6 +98,57 @@
       else { joinInput.value=''; joinInput.placeholder='Invalid code — try A1B2C3'; }
     }
 
+    // ---------- Created room flow (NEW) ----------
+    let lastCreatedCode = null;
+    const createdModal = document.getElementById('createdModal');
+    const createdCodeEl = document.getElementById('createdCode');
+    const createdLinkEl = document.getElementById('createdLink');
+
+    function createRoomFlow(){
+      // generate code but don't navigate yet
+      lastCreatedCode = randomCode();
+      const link = roomUrl(lastCreatedCode);
+
+      createdCodeEl.textContent = lastCreatedCode;
+      createdLinkEl.value = link;
+
+      // show modal
+      createdModal.style.display = 'flex';
+
+      // select link for easy copy
+      setTimeout(()=> createdLinkEl.select(), 0);
+    }
+
+    async function shareCreatedLink(){
+      const link = createdLinkEl.value;
+      try{
+        if (navigator.share) {
+          await navigator.share({ title: 'LinkDrop Room', text: `Join my room: ${lastCreatedCode}`, url: link });
+        } else {
+          await navigator.clipboard.writeText(link);
+          alert('Link copied to clipboard');
+        }
+      }catch(e){ /* user cancelled share or not supported */ }
+    }
+
+    async function copyCreatedLink(){
+      try{
+        await navigator.clipboard.writeText(createdLinkEl.value);
+        createdLinkEl.blur();
+        alert('Link copied to clipboard');
+      }catch(e){
+        createdLinkEl.select();
+        document.execCommand('copy'); // legacy fallback
+        alert('Link copied (fallback)');
+      }
+    }
+
+    function enterCreatedRoom(){
+      if (!lastCreatedCode) return;
+      location.href = `/room/${lastCreatedCode}`;
+    }
+
+    // ---------- About ----------
     const aboutModal = document.getElementById('aboutModal');
     function openAbout(){ aboutModal.style.display='flex'; }
     function closeAbout(){ aboutModal.style.display='none'; }
